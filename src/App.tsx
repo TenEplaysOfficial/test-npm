@@ -1,10 +1,12 @@
+import { Button } from "test-first-package-npm";
 function App() {
-
   return (
     <>
-      <div>Test</div>
+      <div>
+        <Button>Testing...</Button>
+      </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
