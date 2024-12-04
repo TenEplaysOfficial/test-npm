@@ -2,10 +2,9 @@ name: Publish on Version Change
 
 on:
   push:
-    branches:
-      - main  # Trigger only on pushes to the main branch
+    branches: [main]
     paths:
-      - "package.json"  # Trigger only when package.json changes
+      - "package.json"  # Trigger on changes to package.json
 
 jobs:
   check_and_publish:
@@ -14,6 +13,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch the full history to access previous commits
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -26,17 +27,25 @@ jobs:
       run: |
         # Extract the current and previous version
         current_version=$(jq -r '.version' package.json)
+        
+        # Fetch the previous commit's version (if available)
         previous_version=$(git show HEAD~1:package.json | jq -r '.version' || echo "undefined")
 
-        # Print versions for debugging
-        echo "Current version: $current_version"
-        echo "Previous version: $previous_version"
-
-        # Set output for next steps
-        if [ "$current_version" != "$previous_version" ]; then
-          echo "version_changed=true" >> $GITHUB_ENV
-        else
+        # If previous_version is undefined (meaning the commit history is shallow or this is the first commit), handle accordingly
+        if [ "$previous_version" == "undefined" ]; then
+          echo "Previous version not found, assuming no version change"
           echo "version_changed=false" >> $GITHUB_ENV
+        else
+          echo "Current version: $current_version"
+          echo "Previous version: $previous_version"
+
+          # Set output for next steps if version changed
+          if [ "$current_version" != "$previous_version" ]; then
+            echo "version_changed=true" >> $GITHUB_ENV
+          else
+            echo "version_changed=false" >> $GITHUB_ENV
+          fi
+        fi
 
     - name: Skip if No Version Change
       if: env.version_changed == 'false'
