@@ -51,6 +51,12 @@ jobs:
       if: env.version_changed == 'false'
       run: echo "No version change detected. Skipping publish."
 
+    - name: Build Project (if version changed)
+      if: env.version_changed == 'true'
+      run: |
+        npm run prebuild
+        npm run build
+
     - name: Debug npm token
       run: echo "NODE_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}"
 
