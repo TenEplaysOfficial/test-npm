@@ -1,0 +1,49 @@
+name: Publish on Version Change
+
+on:
+  push:
+    branches:
+      - main  # Trigger only on pushes to the main branch
+    paths:
+      - "package.json"  # Trigger only when package.json changes
+
+jobs:
+  check_and_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+
+    - name: Compare Version Field
+      id: version_check
+      run: |
+        # Extract the current and previous version
+        current_version=$(jq -r '.version' package.json)
+        previous_version=$(git show HEAD~1:package.json | jq -r '.version' || echo "undefined")
+
+        # Print versions for debugging
+        echo "Current version: $current_version"
+        echo "Previous version: $previous_version"
+
+        # Set output for next steps
+        if [ "$current_version" != "$previous_version" ]; then
+          echo "version_changed=true" >> $GITHUB_ENV
+        else
+          echo "version_changed=false" >> $GITHUB_ENV
+
+    - name: Skip if No Version Change
+      if: env.version_changed == 'false'
+      run: echo "No version change detected. Skipping publish."
+
+    - name: Publish to npm
+      if: env.version_changed == 'true'
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: npm publish
