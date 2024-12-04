@@ -1,7 +1,7 @@
 {
   "name": "test-first-package-npm",
   "private": false,
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
   "files": [
     "dist",
@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "prebuild": "rimraf dist",
+    "prebuild": "rimraf dist || rm -rf dist",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
