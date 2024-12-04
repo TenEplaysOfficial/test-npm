@@ -51,8 +51,14 @@ jobs:
       if: env.version_changed == 'false'
       run: echo "No version change detected. Skipping publish."
 
+    - name: Debug npm token
+      run: echo "NODE_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}"
+
+    - name: Login to npm
+      run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
     - name: Publish to npm
       if: env.version_changed == 'true'
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}  # Ensure this is correctly referenced
       run: npm publish
