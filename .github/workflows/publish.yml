@@ -22,24 +22,22 @@ jobs:
         node-version: 18
         cache: 'npm'
 
+    - name: Install Dependencies
+      run: npm install  # Install required dependencies
+
     - name: Compare Version Field
       id: version_check
       run: |
         # Extract the current and previous version
         current_version=$(jq -r '.version' package.json)
-        
-        # Fetch the previous commit's version (if available)
         previous_version=$(git show HEAD~1:package.json | jq -r '.version' || echo "undefined")
 
-        # If previous_version is undefined (meaning the commit history is shallow or this is the first commit), handle accordingly
         if [ "$previous_version" == "undefined" ]; then
           echo "Previous version not found, assuming no version change"
           echo "version_changed=false" >> $GITHUB_ENV
         else
           echo "Current version: $current_version"
           echo "Previous version: $previous_version"
-
-          # Set output for next steps if version changed
           if [ "$current_version" != "$previous_version" ]; then
             echo "version_changed=true" >> $GITHUB_ENV
           else
@@ -66,5 +64,5 @@ jobs:
     - name: Publish to npm
       if: env.version_changed == 'true'
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}  # Ensure this is correctly referenced
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: npm publish
